@@ -5,13 +5,13 @@ local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shl
 local correctKey = "v2"
 
 -- ฟังก์ชันตรวจสอบคีย์
-local function checkKey(Key)
+local function checkKey(inputKey)
     return inputKey == correctKey
 end
 
 -- สร้าง GUI พื้นฐานสำหรับการใส่คีย์
 local KeyWindow = OrionLib:MakeWindow({
-    Name = "Key System - Yanzz Hub",
+    Name = "Key System",
     HidePremium = false,
     SaveConfig = false,
     IntroText = "กรุณาใส่คีย์เพื่อใช้งาน GUI",
