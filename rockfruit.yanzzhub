@@ -1,0 +1,269 @@
+-- โหลด ORION Library
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+-- กำหนดคีย์ที่ต้องการ
+local correctKey = "v2"
+
+-- ฟังก์ชันตรวจสอบคีย์
+local function checkKey(Key)
+    return inputKey == correctKey
+end
+
+-- สร้าง GUI พื้นฐานสำหรับการใส่คีย์
+local KeyWindow = OrionLib:MakeWindow({
+    Name = "Key System - Yanzz Hub",
+    HidePremium = false,
+    SaveConfig = false,
+    IntroText = "กรุณาใส่คีย์เพื่อใช้งาน GUI",
+    MainColor = Color3.fromRGB(0, 170, 255),
+    BorderColor = Color3.fromRGB(255, 255, 255),
+    Icon = "rbxassetid://6329056056"
+})
+
+local KeyTab = KeyWindow:MakeTab({
+    Name = "Key System Yanzz Hub",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local KeySection = KeyTab:AddSection({ Name = "กรุณาใส่คีย์" })
+
+local KeyTextBox = KeySection:AddTextbox({
+    Name = "กรุณาใส่คีย์",
+    Default = "",
+    TextDisappear = true,
+    Callback = function(value)
+        local keyInput = value
+        if checkKey(keyInput) then
+            OrionLib:MakeNotification({
+                Name = "คีย์ถูกต้อง",
+                Content = "คีย์ที่คุณใส่ถูกต้อง! ขณะนี้คุณสามารถใช้งาน GUI ได้",
+                Image = "rbxassetid://6329056056",
+                Time = 5
+            })
+            -- เปิด GUI หลักเมื่อคีย์ถูกต้อง
+            loadMainGUI()
+            KeyWindow:Destroy()
+        else
+            OrionLib:MakeNotification({
+                Name = "คีย์ไม่ถูกต้อง",
+                Content = "คีย์ที่คุณใส่ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง",
+                Image = "rbxassetid://6329056056",
+                Time = 5
+            })
+        end
+    end
+})
+
+-- ฟังก์ชันสร้าง GUI หลัก
+function loadMainGUI()
+    local Window = OrionLib:MakeWindow({
+        Name = "Rock Fruit - ไทย | Yanzz Hub",
+        HidePremium = false,
+        SaveConfig = true,
+        ConfigFolder = "YanzzConfig",
+        MainColor = Color3.fromRGB(0, 170, 255),
+        BorderColor = Color3.fromRGB(255, 255, 255),
+        
+        ToggleKey = Enum.KeyCode.RightControl,
+        Icon = "rbxassetid://6329056056" -- เปลี่ยนโลโก้ที่ปุ่มเปิดปิด
+    })
+
+    -- ฟังก์ชันเปลี่ยนสี RGB รอบๆปุ่มเปิดปิด GUI
+    local function cycleColor()
+        local h = tick() % 5 / 5
+        local color = Color3.fromHSV(h, 1, 1)
+        Window.Toggle.VisibleFrame.BorderColor3 = color
+        Window.Toggle.ToggleButton.BorderColor3 = color
+    end
+
+    game:GetService("RunService").RenderStepped:Connect(cycleColor)
+
+    -- สร้าง Tab สำหรับระบบการทำงาน
+    local MainTab = Window:MakeTab({
+        Name = "Home",
+        Icon = "rbxassetid://4483345998",
+        PremiumOnly = false
+    })
+
+    -- สร้าง Sections ใน Tab
+    local SettingsSection = MainTab:AddSection({ Name = "การตั้งค่า" })
+    local LifeTimeLabel = MainTab:AddLabel("เวลาในชีวิตจริง: " .. os.date("%X"))
+    local AutoFarmSection = MainTab:AddSection({ Name = "ฟาร์มอัตโนมัติ" })
+    local CollectItemsSection = MainTab:AddSection({ Name = "เก็บไอเท็มอัตโนมัติ" })
+    local BossMenuSection = MainTab:AddSection({ Name = "การตีบอส" })
+
+    -- ฟังก์ชันพื้นฐานสำหรับการใช้งานในหลากหลายเกม
+    local toolName = ""
+
+    local function updateTools()
+        local tools = {}
+        for _, tool in ipairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+            if tool:IsA("Tool") then
+                table.insert(tools, tool.Name)
+            end
+        end
+        return tools
+    end
+
+    local function updateEnemies()
+        local enemiesList = {}
+        for _, enemy in ipairs(game.Workspace:GetDescendants()) do
+            if enemy:IsA("Model") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                table.insert(enemiesList, enemy.Name)
+            end
+        end
+        return enemiesList
+    end
+
+    local function findClosestEntity()
+        local closestEntity = nil
+        local closestDistance = math.huge
+
+        for _, entity in ipairs(game.Workspace:GetDescendants()) do
+        if entity:IsA("Model") and entity:FindFirstChild("Humanoid") and entity.Humanoid.Health > 0 then
+                local distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - entity.HumanoidRootPart.Position).magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestEntity = entity
+                end
+            end
+        end
+
+        return closestEntity
+    end
+
+    local function attackEntity(target, toolName)
+        if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+            local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(toolName) or game.Players.LocalPlayer.Character:FindFirstChild(toolName)
+            if tool then
+                game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.HumanoidRootPart.CFrame
+                tool:Activate()
+            end
+        end
+    end
+
+    local function collectItems()
+        for _, item in ipairs(game.Workspace:GetDescendants()) do
+            if item:IsA("BasePart") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = item.CFrame
+                wait(0.5) -- ให้เวลากลไกเก็บไอเท็มทำงาน
+            end
+        end
+    end
+
+    -- สร้าง Setting ให้เลือกอาวุธโจมตี
+    local WeaponDropdown = SettingsSection:AddDropdown({
+        Name = "เลือกอาวุธโจมตี",
+        Default = "",
+        Options = updateTools(),
+        Callback = function(value)
+            toolName = value
+        end
+    })
+
+    -- ปุ่มรีเฟรชรายการอาวุธ
+    SettingsSection:AddButton({
+        Name = "รีเฟรชรายการอาวุธ",
+        Callback = function()
+            WeaponDropdown:Refresh(updateTools(), true)
+            OrionLib:MakeNotification({
+                Name = "รายการอาวุธอัพเดทแล้ว",
+                Content = "รายการอาวุธถูกอัพเดทแล้ว!",
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
+        end
+    })
+
+    -- โชว์เวลาในชีวิตจริง
+    spawn(function()
+        while true do
+            LifeTimeLabel:Set("เวลาในชีวิตจริง: " .. os.date("%X"))
+            wait(1)
+        end
+    end)
+
+    -- สร้าง Toggle สำหรับเปิด/ปิดฟาร์มอัตโนมัติ
+    AutoFarmSection:AddToggle({
+        Name = "เปิดฟาร์มอัตโนมัติ",
+        Default = false,
+        Callback = function(value)
+            game:GetService("RunService").RenderStepped:Connect(function()
+                if value then
+                    local enemy = findClosestEntity()
+                    if enemy and toolName ~= "" then
+                        attackEntity(enemy, toolName)
+                    end
+                end
+            end)
+        end
+    })
+
+    -- สร้าง Toggle สำหรับเก็บไอเท็มอัตโนมัติ
+    CollectItemsSection:AddToggle({
+        Name = "เปิดเก็บไอเท็มอัตโนมัติ",
+        Default = false,
+        Callback = function(value)
+            game:GetService("RunService").RenderStepped:Connect(function()
+                if value then
+                    collectItems()
+                end
+            end)
+        end
+    })
+
+    -- สร้างเมนูการเลือกที่จะตีบอส
+    local SelectedBoss = ""
+    local BossDropdown = BossMenuSection:AddDropdown({
+        Name = "เลือกบอส",
+        Default = "",
+        Options = updateEnemies(),
+        Callback = function(value)
+            SelectedBoss = value
+        end
+    })
+
+BossMenuSection:AddToggle({
+Name = "ตีบอสอัตโนมัติ",
+Default = false,
+Callback = function(value)
+attackingBoss = value
+if attackingBoss then
+bossAttackConnection = game:GetService("RunService").RenderStepped:Connect(function()
+if SelectedBoss ~= "" then
+local boss = game.Workspace:FindFirstChild(SelectedBoss)
+if boss and toolName ~= "" then
+attackEntity(boss, toolName)
+end
+end
+end)
+else
+if bossAttackConnection then
+bossAttackConnection:Disconnect()
+end
+end
+end
+})
+
+-- ปุ่มรีเฟรชรายการบอส
+BossMenuSection:AddButton({
+Name = "รีเฟรชรายการบอส",
+Callback = function()
+BossDropdown:Refresh(updateEnemies(), true)
+OrionLib:MakeNotification({
+Name = "รายการบอสอัพเดทแล้ว",
+Content = "รายการบอสถูกอัพเดทแล้ว!",
+Image = "rbxassetid://4483345998",
+Time = 5
+})
+end
+})
+
+-- เปิด GUI
+OrionLib:Init()
+end
+
+-- เปิด GUI ใส่คีย์
+OrionLib:Init()
