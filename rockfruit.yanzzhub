@@ -30,7 +30,7 @@ local KeySection = KeyTab:AddSection({ Name = "กรุณาใส่คีย
 
 local KeyTextBox = KeySection:AddTextbox({
     Name = "กรุณาใส่คีย์",
-    Default = "",
+    Default = "v2",
     TextDisappear = true,
     Callback = function(value)
         local keyInput = value
