@@ -1,0 +1,139 @@
+-- โหลด FluentUI Library
+local FluentLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/x2Swiftz/UI-Library/main/Libraries/FluentUI-Example.lua'))()
+
+-- กำหนดคีย์ที่ต้องการ
+local correctKey = "v2" -- เปลี่ยนเป็นคีย์ที่คุณต้องการ
+
+-- ฟังก์ชันตรวจสอบคีย์
+local function checkKey(inputKey)
+return inputKey == correctKey
+end
+
+-- สร้าง GUI พื้นฐานสำหรับการใส่คีย์
+local Window = FluentLib:CreateWindow("Yanzz Hub - Key System")
+
+local KeyTab = Window:CreateTab("Key System")
+
+local KeySection = KeyTab:CreateSection("Enter Key to Access GUI")
+
+local keyInput = "v2"
+KeySection:CreateTextbox("Key", function(value)
+keyInput = value
+end)
+
+KeySection:CreateButton("Submit", function()
+if checkKey(keyInput) then
+FluentLib:Notify("Key Authentication", "Key is Correct! Access Granted.", 5)
+Window:Destroy()
+loadMainGUI()
+else
+FluentLib:Notify("Key Authentication", "Incorrect Key! Please try again.", 5)
+end
+end)
+
+-- ฟังก์ชันสร้าง GUI หลัก
+function loadMainGUI()
+local MainGUI = FluentLib:CreateWindow("Yanzz Hub - Rock Fruit")
+
+local MainTab = MainGUI:CreateTab("Auto Farm")
+local SettingsTab = MainGUI:CreateTab("Settings")
+
+local AutoFarmSection = MainTab:CreateSection("Auto Farm")
+local SettingsSection = SettingsTab:CreateSection("Settings")
+
+-- ฟังก์ชันพื้นฐานสำหรับการใช้งานในหลากหลายเกม
+local toolName = ""
+local attackSpeed = 5
+local selectedEnemy = ""
+local autoFarmOn = false
+local autoFarmConnection
+
+local function updateTools()
+local tools = {}
+for _, tool in ipairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+if tool:IsA("Tool") then
+table.insert(tools, tool.Name)
+end
+end
+return tools
+end
+
+local function updateEnemies()
+local enemiesList = {}
+for _, enemy in ipairs(game.Workspace:GetDescendants()) do
+if enemy:IsA("Model") and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+table.insert(enemiesList, enemy.Name)
+end
+end
+return enemiesList
+end
+
+local function attackEntity(target, toolName)
+if target and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(toolName) or game.Players.LocalPlayer.Character:FindFirstChild(toolName)
+if tool then
+game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.HumanoidRootPart.CFrame
+tool:Activate()
+wait(1 / attackSpeed) -- กำหนดความเร็วในการโจมตี
+end
+end
+end
+
+local function startAutoFarm()
+autoFarmOn = true
+autoFarmConnection = game:GetService("RunService").RenderStepped:Connect(function()
+if autoFarmOn and selectedEnemy ~= "" and toolName ~= "" then
+local enemies = game.Workspace:GetChildren()
+for _, enemy in ipairs(enemies) do
+if enemy:IsA("Model") and enemy.Name == selectedEnemy and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+attackEntity(enemy, toolName)
+end
+end
+end
+end)
+end
+
+local function stopAutoFarm()
+autoFarmOn = false
+if autoFarmConnection then
+autoFarmConnection:Disconnect()
+end
+end
+
+-- สร้าง Setting ให้เลือกอาวุธโจมตี
+SettingsSection:CreateDropdown("Select Attack Tool", updateTools(), function(value)
+toolName = value
+end)
+
+-- ปุ่มรีเฟรชรายการอาวุธ
+SettingsSection:CreateButton("Refresh Tools", function()
+SettingsSection:UpdateDropdown("Select Attack Tool", updateTools())
+FluentLib:Notify("Tool List Updated", "The tool list has been updated!", 5)
+end)
+
+-- สร้าง Setting ให้เลือกมอนสเตอร์โจมตี
+AutoFarmSection:CreateDropdown("Select Monster", updateEnemies(), function(value)
+selectedEnemy = value
+end)
+
+-- ปุ่มรีเฟรชรายการมอนสเตอร์
+AutoFarmSection:CreateButton("Refresh Monsters", function()
+AutoFarmSection:UpdateDropdown("Select Monster", updateEnemies())
+FluentLib:Notify("Monster List Updated", "The monster list has been updated!", 5)
+end)
+
+-- สร้าง Slider สำหรับกำหนดความเร็วในการโจมตี
+SettingsSection:CreateSlider("Attack Speed", 1, 10, 5, function(value)
+attackSpeed = value
+end)
+
+-- สร้าง Toggle สำหรับเปิด/ปิดฟาร์มอัตโนมัติ
+AutoFarmSection:CreateToggle("Auto Farm", false, function(value)
+if value then
+startAutoFarm()
+else
+stopAutoFarm()
+end
+end)
+end
