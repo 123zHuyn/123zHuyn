@@ -1,8 +1,8 @@
 local player = game.Players.LocalPlayer
 
+-- ฟังก์ชันเพื่อปิดเอฟเฟกต์
 local function disableEffects()
     game.Lighting.GlobalShadows = false
-
     game.Lighting.Technology = Enum.Technology.Legacy
 
     for _, effect in pairs(game.Lighting:GetChildren()) do
@@ -30,6 +30,36 @@ local function disableEffects()
     end
 end
 
+-- ฟังก์ชันเพื่อเปิดใช้งานเอฟเฟกต์กลับมา
+local function enableEffects()
+    game.Lighting.GlobalShadows = true
+    game.Lighting.Technology = Enum.Technology.Future
+
+    for _, effect in pairs(game.Lighting:GetChildren()) do
+        if effect:IsA("PostEffect") then
+            effect.Enabled = true
+        end
+    end
+
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+            v.Enabled = true
+        end
+    end
+
+    for _, appearance in pairs(workspace:GetDescendants()) do
+        if appearance:IsA("SurfaceAppearance") then
+            appearance.Enabled = true
+        end
+    end
+
+    for _, mesh in pairs(workspace:GetDescendants()) do
+        if mesh:IsA("MeshPart") then
+            mesh.CastShadow = true
+        end
+    end
+end
+
 local UIS = game:GetService("UserInputService")
 local fpsBoosterEnabled = false
 
@@ -40,26 +70,39 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
             disableEffects()
             print("FPS Booster Enabled")
         else
+            enableEffects()
             print("FPS Booster Disabled")
         end
     end
 end)
 
+-- สร้าง ScreenGui ถ้ายังไม่มี
+local screenGui = player:WaitForChild("PlayerGui"):FindFirstChild("ScreenGui") 
+if not screenGui then
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ScreenGui"
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+end
+
+-- สร้างปุ่ม UI สำหรับสลับ FPS Booster
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0, 100, 0, 50)
 toggleButton.Position = UDim2.new(0.5, -50, 0, 50)
 toggleButton.Text = "Toggle FPS Booster"
-toggleButton.Parent = player:WaitForChild("PlayerGui"):WaitForChild("ScreenGui")
+toggleButton.Parent = screenGui
+
 toggleButton.MouseButton1Click:Connect(function()
     fpsBoosterEnabled = not fpsBoosterEnabled
     if fpsBoosterEnabled then
         disableEffects()
         print("FPS Booster Enabled")
     else
+        enableEffects()
         print("FPS Booster Disabled")
     end
 end)
 
+-- ฟังก์ชันลากปุ่ม
 local dragging = false
 local dragInput, mousePos, framePos
 
