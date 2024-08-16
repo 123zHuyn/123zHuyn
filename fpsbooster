@@ -1,173 +1,96 @@
-game:GetService("LogService").MessageOut:Connect(function() end)
-game:GetService("ScriptContext").Error:Connect(function() end)
+local player = game.Players.LocalPlayer
 
-settings().Network.IncomingReplicationLag = 0
-settings().Physics.AllowSleep = true
+local function disableEffects()
+    game.Lighting.GlobalShadows = false
 
-for _, v in pairs(game:GetDescendants()) do
-if v:IsA("BasePart") or v:IsA("UnionOperation") or v:IsA("Model") or v:IsA("MeshPart") then
-v.CastShadow = true
-elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-v.Lifetime = NumberRange.new(0)
-elseif v:IsA("Explosion") then
-v.BlastPressure = 1
-v.BlastRadius = 1
-end
-end
+    game.Lighting.Technology = Enum.Technology.Legacy
 
-for _, s in pairs(game:GetService("SoundService"):GetChildren()) do
-if s:IsA("Sound") then
-s.PlaybackSpeed = 1
-end
-end
-
-local network = game:service("NetworkClient")
-network:SetOutgoingKBPSLimit(1024)
-
-local players = game:GetService("Players")
-local player = players.LocalPlayer
-
-player.ReplicationFocus = workspace.CurrentCamera or workspace:FindFirstChildWhichIsA('Camera')
-
-print("Ping Reducer ทำงานแล้ว")
-
-settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-
-for _, v in pairs(game:GetDescendants()) do
-    if v:IsA("BasePart") or v:IsA("UnionOperation") or v:IsA("Model") or v:IsA("MeshPart") then
-        v.Material = Enum.Material.SmoothPlastic
-        v.Reflectance = 1
-        if v:IsA("BasePart") then
-            v.CastShadow = true
+    for _, effect in pairs(game.Lighting:GetChildren()) do
+        if effect:IsA("PostEffect") then
+            effect.Enabled = false
         end
-    elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-        v.Lifetime = NumberRange.new(0)
-    elseif v:IsA("Explosion") then
-        v.BlastPressure = 2
-        v.BlastRadius = 2
     end
-end
 
-game.Lighting.GlobalShadows = true
-game.Lighting.Outlines = true
-
-local terrain = workspace:FindFirstChildOfClass("Terrain")
-if terrain then
-    terrain.WaterWaveSize = 5
-    terrain.WaterWaveSpeed = 5
-    terrain.WaterReflectance = 5
-    terrain.WaterTransparency = 5
-end
-
-for _, s in pairs(game:GetService("SoundService"):GetChildren()) do
-    if s:IsA("Sound") then
-        s.PlaybackSpeed = 1
-    end
-end
-
-if setfpscap then
-    setfpscap(1300)
-else
-    warn("setfpscap function not available")
-end
-
-settings().Rendering.QualityLevel = Enum.QualityLevel.Level21
-
-local lighting = game:GetService("Lighting")
-lighting.GlobalShadows = true
-lighting.Brightness = 3
-lighting.ClockTime = 15
-lighting.GeographicLatitude = 45
-lighting.FogEnd = 1000
-lighting.FogStart = 200
-lighting.Ambient = Color3.fromRGB(128, 128, 128)
-lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-lighting.ColorShift_Top = Color3.fromRGB(255, 255, 255)
-
-for _, v in pairs(game:GetDescendants()) do
-    if v:IsA("BasePart") or v:IsA("UnionOperation") or v:IsA("Model") or v:IsA("MeshPart") then
-        v.Material = Enum.Material.Glass
-        v.Reflectance = 0.5
-        v.Transparency = 0.5
-        if v:IsA("BasePart") then
-            v.CastShadow = true
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+            v.Enabled = false
         end
-    elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-        v.LightEmission = 0.75
-    elseif v:IsA("Explosion") then
-        v.BlastPressure = 50000
-        v.BlastRadius = 50
+    end
+
+    for _, appearance in pairs(workspace:GetDescendants()) do
+        if appearance:IsA("SurfaceAppearance") then
+            appearance.Enabled = false
+        end
+    end
+
+    for _, mesh in pairs(workspace:GetDescendants()) do
+        if mesh:IsA("MeshPart") then
+            mesh.CastShadow = false
+        end
     end
 end
 
-for _, s in pairs(game:GetService("SoundService"):GetChildren()) do
-    if s:IsA("Sound") then
-        s.PlaybackSpeed = 1
+local UIS = game:GetService("UserInputService")
+local fpsBoosterEnabled = false
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.F and not gameProcessed then
+        fpsBoosterEnabled = not fpsBoosterEnabled
+        if fpsBoosterEnabled then
+            disableEffects()
+            print("FPS Booster Enabled")
+        else
+            print("FPS Booster Disabled")
+        end
     end
-end
+end)
 
--- Additional boost by removing unnecessary instances
-for _, v in pairs(game:GetDescendants()) do
-    if v:IsA("Decal") or v:IsA("Texture") then
-        v:Destroy()
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 100, 0, 50)
+toggleButton.Position = UDim2.new(0.5, -50, 0, 50)
+toggleButton.Text = "Toggle FPS Booster"
+toggleButton.Parent = player:WaitForChild("PlayerGui"):WaitForChild("ScreenGui")
+toggleButton.MouseButton1Click:Connect(function()
+    fpsBoosterEnabled = not fpsBoosterEnabled
+    if fpsBoosterEnabled then
+        disableEffects()
+        print("FPS Booster Enabled")
+    else
+        print("FPS Booster Disabled")
     end
-end
+end)
 
-print("FPS Booster และระบบ RTX ทำงานแล้ว")
+local dragging = false
+local dragInput, mousePos, framePos
 
-settings().Network.IncomingReplicationLag = 1
-settings().Physics.AllowSleep = true
+toggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = toggleButton.Position
 
-for _, v in pairs(game:GetDescendants()) do
-if v:IsA("BasePart") or v:IsA("UnionOperation") or v:IsA("Model") or v:IsA("MeshPart") then
-v.Material = Enum.Material.SmoothPlastic
-v.Reflectance = 0
-if v:IsA("BasePart") then
-v.CastShadow = false
-end
-elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-v.Lifetime = NumberRange.new(0)
-elseif v:IsA("Explosion") then
-v.BlastPressure = 1
-v.BlastRadius = 1
-elseif v:IsA("Decal") or v:IsA("Texture") then
-v:Destroy() -- กำจัด Decal และ Texture
-end
-end
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
 
-for _, s in pairs(game:GetService("SoundService"):GetChildren()) do
-if s:IsA("Sound") then
-s.PlaybackSpeed = 0.5
-s.Volume = 0
-end
-end
+toggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
 
-local lighting = game:GetService("Lighting")
-lighting.GlobalShadows = false
-lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-lighting.Ambient = Color3.fromRGB(128, 128, 128)
-
-local terrain = workspace:FindFirstChildOfClass("Terrain")
-if terrain then
-terrain.WaterWaveSize = 2
-terrain.WaterWaveSpeed = 2
-terrain.WaterReflectance = 1
-terrain.WaterTransparency = 1
-end
-
-local player = game:GetService("Players").LocalPlayer
-if player and player:FindFirstChild("PlayerGui") then
-for _, gui in pairs(player.PlayerGui:GetChildren()) do
-if gui:IsA("ScreenGui") then
-gui.Enabled = false
-end
-end
-end
-
-local function ClearUnusedMemory()
-collectgarbage("collect")
-end
-
-game:GetService("RunService").Heartbeat:Connect(ClearUnusedMemory)
-
-print("Memory Optimization Script ทำงานแล้ว")
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        toggleButton.Position = UDim2.new(
+            framePos.X.Scale,
+            framePos.X.Offset + delta.X,
+            framePos.Y.Scale,
+            framePos.Y.Offset + delta.Y
+        )
+    end
+end)
