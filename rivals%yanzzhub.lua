@@ -78,11 +78,9 @@ end
 
 -- ฟังก์ชันที่ทำให้กระสุนติดตามศัตรูเมื่อถูกยิง
 local function onBulletFired(bullet)
-    RunService.RenderStepped:Connect(function()
-        if bullet and bullet.Parent then
-            bulletFollowEnemy(bullet)
-        end
-    end)
+    if bullet and bullet.Parent then
+        bulletFollowEnemy(bullet)
+    end
 end
 
 -- ฟังก์ชันเพื่อสร้างกระสุนตัวอย่าง
