@@ -553,4 +553,93 @@ local _Stats = Tabs.Stats do
           OtherEvent.MainEvents.StatsFunction:InvokeServer({
             ["Target"] = StatsName[_],
             ["Action"] = "UpgradeStats",
-            ["Amount"] = math.clamp(Settings.AutoStat
+            ["Amount"] = math.clamp(Settings.AutoStats_Points, 0, MSetting.Setting.MaxLevel - _s.Value)
+          })
+        end
+      end
+    end
+  end})
+  _Stats:AddSection("Select Stats")
+  for _,v in next, StatsName do
+    _Stats:AddToggle({_, false, function(Value)
+      SelectedStats[_] = Value
+    end, "Stats_" .. _})
+  end
+end
+
+local _Teleport = Tabs.Teleport do
+  _Teleport:AddSection("Teleport")
+  _Teleport:AddDropdown({"Islands", Location:WaitForChild("SpawnLocations"):GetChildren(), {}, function(Value)
+    GoTo(Location.SpawnLocations[Value].CFrame)
+  end})
+  _Teleport:AddDropdown({"Quests", Location:WaitForChild("QuestLocaion"):GetChildren(), {}, function(Value)
+    GoTo(Location.QuestLocaion[Value].CFrame)
+  end})
+end
+
+local _Shop = Tabs.Shop do
+  _Shop:AddSection("Auto Buy")
+  _Shop:AddToggle({"Auto Buy Abilities", false, function(Value)
+    _env.AutoBuyAbility = Value
+    while _env.AutoBuyAbility do  _wait(1)
+      if not Funcs:AbilityUnlocked("Instinct") and Funcs:CanBuy("Instinct") then
+        OtherEvent.MainEvents.Modules:FireServer("Ability_Teacher", "Nugget Man")
+      elseif not Funcs:AbilityUnlocked("FlashStep") and Funcs:CanBuy("FlashStep") then
+        OtherEvent.MainEvents.Modules:FireServer("Ability_Teacher", "Giga Chad")
+      elseif not Funcs:AbilityUnlocked("Aura") and Funcs:CanBuy("Aura") then
+        OtherEvent.MainEvents.Modules:FireServer("Ability_Teacher", "Aura Master")
+      else wait(3) end
+    end
+  end, "Auto Buy Ability", Desc = "Aura, Instinct & Flash Step"})
+  
+  for _,s in next, Loaded.Shop do
+    _Shop:AddSection({s[1]})
+    for _,item in pairs(s[2]) do
+      local buyfunc = item[3]
+      if type(buyfunc) == "table" then
+        buyfunc = function()
+          OtherEvent.MainEvents.Modules:FireServer(unpack(item[3]))
+        end
+      end
+      
+      _Shop:AddButton({item[1], buyfunc, Desc = item[2]})
+    end
+  end
+end
+
+local _Misc = Tabs.Misc do
+  _Misc:AddButton({"Redeem All Codes", Funcs.RAllCodes})
+  _Misc:AddSection("Settings")
+  _Misc:AddSlider({"Farm Distance", 5, 15, 1, 8, function(Value)
+    Settings.FarmDistance = Value or 8
+    Settings.FarmCFrame = CFrame_new(0, Value or 8, 0) * CFrame_Angles(math.rad(-90), 0, 0)
+  end, "Farm Distance"})
+  _Misc:AddToggle({"Auto Aura", Settings.AutoHaki, function(Value) Settings.AutoHaki = Value end, "Auto Haki"})
+  _Misc:AddToggle({"Auto Attack", Settings.AutoClick, function(Value) Settings.AutoClick = Value end, "Auto Attack"})
+  _Misc:AddToggle({"Bring Mobs", Settings.BringMobs, function(Value) Settings.BringMobs = Value end, "Bring Mobs"})
+  _Misc:AddToggle({"Anti AFK", Settings.AntiAFK, function(Value) Settings.AntiAFK = Value end, "Anti AFK"})
+  _Misc:AddSection("Team")
+  _Misc:AddButton({"Join Cheems Team", function()
+    OtherEvent.MainEvents.Modules:FireServer("Change_Team", "Cheems Recruiter")
+  end})
+  _Misc:AddButton({"Join Floppa Team", function()
+    OtherEvent.MainEvents.Modules:FireServer("Change_Team", "Floppa Recruiter")
+  end})
+  _Misc:AddSection("Others")
+  _Misc:AddToggle({"Remove Notifications", false, function(Value)
+    Player.PlayerGui.AnnounceGui.Enabled = not Value
+  end, "Remove Notifications"})
+end
+
+task.spawn(function()
+  if not _env.AntiAfk then
+    _env.AntiAfk = true
+    
+    while _wait(60*10) do
+      if Settings.AntiAFK then
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+      end
+    end
+  end
+end)
