@@ -54,3 +54,20 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
             if target then
                 mouse.TargetFilter = target
                 createHitBox(target)
+            end
+        else
+            if target then
+                removeHitBox(target)
+                mouse.TargetFilter = nil
+                target = nil
+            end
+        end
+    end
+end)
+
+runService.RenderStepped:Connect(function()
+    if lockOn and target then
+        local targetPos = target.HumanoidRootPart.Position
+        mouse.Move({Position = targetPos})
+    end
+end)
