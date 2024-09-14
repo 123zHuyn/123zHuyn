@@ -1,15 +1,11 @@
--- โหลด ORION Library
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
--- กำหนดคีย์ที่ต้องการ
 local correctKey = "v2"
 
--- ฟังก์ชันตรวจสอบคีย์
 local function checkKey(inputKey)
     return inputKey == correctKey
 end
 
--- สร้าง GUI พื้นฐานสำหรับการใส่คีย์
 local KeyWindow = OrionLib:MakeWindow({
     Name = "Key System",
     HidePremium = false,
@@ -21,7 +17,7 @@ local KeyWindow = OrionLib:MakeWindow({
 })
 
 local KeyTab = KeyWindow:MakeTab({
-    Name = "Key System Yanzz Hub",
+    Name = "Key System",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
@@ -41,7 +37,7 @@ local KeyTextBox = KeySection:AddTextbox({
                 Image = "rbxassetid://6329056056",
                 Time = 5
             })
-            -- เปิด GUI หลักเมื่อคีย์ถูกต้อง
+            
             loadMainGUI()
             KeyWindow:Destroy()
         else
@@ -55,7 +51,7 @@ local KeyTextBox = KeySection:AddTextbox({
     end
 })
 
--- ฟังก์ชันสร้าง GUI หลัก
+
 function loadMainGUI()
     local Window = OrionLib:MakeWindow({
         Name = "Rock Fruit - ไทย | Yanzz Hub",
@@ -66,10 +62,9 @@ function loadMainGUI()
         BorderColor = Color3.fromRGB(255, 255, 255),
         
         ToggleKey = Enum.KeyCode.RightControl,
-        Icon = "rbxassetid://6329056056" -- เปลี่ยนโลโก้ที่ปุ่มเปิดปิด
+        Icon = "rbxassetid://6329056056"
     })
 
-    -- ฟังก์ชันเปลี่ยนสี RGB รอบๆปุ่มเปิดปิด GUI
     local function cycleColor()
         local h = tick() % 5 / 5
         local color = Color3.fromHSV(h, 1, 1)
@@ -79,21 +74,18 @@ function loadMainGUI()
 
     game:GetService("RunService").RenderStepped:Connect(cycleColor)
 
-    -- สร้าง Tab สำหรับระบบการทำงาน
     local MainTab = Window:MakeTab({
         Name = "Home",
         Icon = "rbxassetid://4483345998",
         PremiumOnly = false
     })
 
-    -- สร้าง Sections ใน Tab
     local SettingsSection = MainTab:AddSection({ Name = "การตั้งค่า" })
     local LifeTimeLabel = MainTab:AddLabel("เวลาในชีวิตจริง: " .. os.date("%X"))
     local AutoFarmSection = MainTab:AddSection({ Name = "ฟาร์มอัตโนมัติ" })
     local CollectItemsSection = MainTab:AddSection({ Name = "เก็บไอเท็มอัตโนมัติ" })
     local BossMenuSection = MainTab:AddSection({ Name = "การตีบอส" })
 
-    -- ฟังก์ชันพื้นฐานสำหรับการใช้งานในหลากหลายเกม
     local toolName = ""
 
     local function updateTools()
@@ -153,7 +145,6 @@ function loadMainGUI()
         end
     end
 
-    -- สร้าง Setting ให้เลือกอาวุธโจมตี
     local WeaponDropdown = SettingsSection:AddDropdown({
         Name = "เลือกอาวุธโจมตี",
         Default = "",
@@ -163,7 +154,6 @@ function loadMainGUI()
         end
     })
 
-    -- ปุ่มรีเฟรชรายการอาวุธ
     SettingsSection:AddButton({
         Name = "รีเฟรชรายการอาวุธ",
         Callback = function()
@@ -177,7 +167,6 @@ function loadMainGUI()
         end
     })
 
-    -- โชว์เวลาในชีวิตจริง
     spawn(function()
         while true do
             LifeTimeLabel:Set("เวลาในชีวิตจริง: " .. os.date("%X"))
@@ -185,7 +174,6 @@ function loadMainGUI()
         end
     end)
 
-    -- สร้าง Toggle สำหรับเปิด/ปิดฟาร์มอัตโนมัติ
     AutoFarmSection:AddToggle({
         Name = "เปิดฟาร์มอัตโนมัติ",
         Default = false,
@@ -201,7 +189,6 @@ function loadMainGUI()
         end
     })
 
-    -- สร้าง Toggle สำหรับเก็บไอเท็มอัตโนมัติ
     CollectItemsSection:AddToggle({
         Name = "เปิดเก็บไอเท็มอัตโนมัติ",
         Default = false,
@@ -214,7 +201,6 @@ function loadMainGUI()
         end
     })
 
-    -- สร้างเมนูการเลือกที่จะตีบอส
     local SelectedBoss = ""
     local BossDropdown = BossMenuSection:AddDropdown({
         Name = "เลือกบอส",
@@ -247,7 +233,6 @@ end
 end
 })
 
--- ปุ่มรีเฟรชรายการบอส
 BossMenuSection:AddButton({
 Name = "รีเฟรชรายการบอส",
 Callback = function()
@@ -261,9 +246,7 @@ Time = 5
 end
 })
 
--- เปิด GUI
 OrionLib:Init()
 end
 
--- เปิด GUI ใส่คีย์
 OrionLib:Init()
